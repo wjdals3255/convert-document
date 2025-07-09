@@ -1,0 +1,5 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@import '$lib/assets/scss/variables.scss';
+@import '$lib/assets/scss/main.scss';
+@import '$lib/assets/scss/components.scss';
