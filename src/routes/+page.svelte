@@ -5,24 +5,45 @@
 
   // 인증 관련 상태
   let isAuthenticated = false
-  let passwordInput = ''
-  let passwordError = ''
-  const PASSWORD = 'Codex2025!!'
+  let username = ''
+  let password = ''
+  let loginError = ''
 
-  // 인증 상태를 로컬스토리지에서 불러오기
+  // JWT 토큰 체크
   onMount(() => {
-    if (localStorage.getItem('isAuthenticated') === 'true') {
-      isAuthenticated = true
+    const token = localStorage.getItem('jwt')
+    const expiresAt = localStorage.getItem('jwt_expires_at')
+    if (token && expiresAt) {
+      const now = Date.now()
+      if (now < Number(expiresAt)) {
+        isAuthenticated = true
+      } else {
+        // 만료됨
+        localStorage.removeItem('jwt')
+        localStorage.removeItem('jwt_expires_at')
+        isAuthenticated = false
+      }
     }
   })
 
-  function handlePasswordSubmit() {
-    if (passwordInput === PASSWORD) {
+  async function handleLogin() {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_PUBLIC_BASE_API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+      if (!res.ok) throw new Error('로그인 실패')
+      const data = await res.json()
+      localStorage.setItem('jwt', data.token)
+      // 1시간 뒤 만료
+      localStorage.setItem('jwt_expires_at', (Date.now() + 60 * 60 * 1000).toString())
       isAuthenticated = true
-      localStorage.setItem('isAuthenticated', 'true')
-      passwordError = ''
-    } else {
-      passwordError = '비밀번호가 올바르지 않습니다.'
+      loginError = ''
+      toast.success('로그인 성공!')
+    } catch (e) {
+      loginError = '아이디 또는 비밀번호가 올바르지 않습니다.'
+      toast.error('로그인 실패')
     }
   }
 
@@ -152,24 +173,33 @@
     style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;"
   >
     <div style="background:#222;padding:2rem 2.5rem;border-radius:12px;box-shadow:0 2px 16px #000;min-width:320px;">
-      <h2 style="color:#fff;margin-bottom:1.5rem;">비밀번호 입력</h2>
+      <h2 style="color:#fff;margin-bottom:1.5rem;">로그인</h2>
       <input
-        type="password"
-        bind:value={passwordInput}
-        placeholder="비밀번호를 입력하세요"
-        style="width:100%;padding:0.75rem 1rem;border-radius:6px;border:none;font-size:1.1rem;"
+        class="login-input"
+        type="text"
+        bind:value={username}
+        placeholder="아이디"
         on:keydown={(e) => {
-          if (e.key === 'Enter') handlePasswordSubmit()
+          if (e.key === 'Enter') handleLogin()
         }}
       />
-      {#if passwordError}
-        <div style="color:#ff4d4f;margin-top:0.5rem;">{passwordError}</div>
+      <input
+        class="login-input"
+        type="password"
+        bind:value={password}
+        placeholder="비밀번호"
+        on:keydown={(e) => {
+          if (e.key === 'Enter') handleLogin()
+        }}
+      />
+      {#if loginError}
+        <div style="color:#ff4d4f;margin-top:0.5rem;">{loginError}</div>
       {/if}
       <button
         style="margin-top:1.5rem;width:100%;padding:0.75rem 0;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:1.1rem;cursor:pointer;"
-        on:click={handlePasswordSubmit}
+        on:click={handleLogin}
       >
-        확인
+        로그인
       </button>
     </div>
   </div>
