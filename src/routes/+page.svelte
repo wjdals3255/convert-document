@@ -168,12 +168,9 @@
 </svelte:head>
 
 {#if !isAuthenticated}
-  <div
-    class="auth-modal"
-    style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;"
-  >
-    <div style="background:#222;padding:2rem 2.5rem;border-radius:12px;box-shadow:0 2px 16px #000;min-width:320px;">
-      <h2 style="color:#fff;margin-bottom:1.5rem;">로그인</h2>
+  <div class="auth-modal">
+    <div class="login-box">
+      <h2 class="login-title">로그인</h2>
       <input
         class="login-input"
         type="text"
@@ -193,39 +190,30 @@
         }}
       />
       {#if loginError}
-        <div style="color:#ff4d4f;margin-top:0.5rem;">{loginError}</div>
+        <div class="login-error">{loginError}</div>
       {/if}
-      <button
-        style="margin-top:1.5rem;width:100%;padding:0.75rem 0;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:1.1rem;cursor:pointer;"
-        on:click={handleLogin}
-      >
-        로그인
-      </button>
+      <button class="login-btn" on:click={handleLogin}> 로그인 </button>
     </div>
   </div>
 {:else}
   <div class="main-page__content">
     <h1 class="main-page__title">용역 계약 파일 업로드</h1>
-
-    <div class="center-container" style="display: flex; flex-direction: row; gap: 1rem; justify-content: center;">
+    <div class="center-container">
       <input type="file" accept=".hwp,.hwpx" bind:this={fileInput} on:change={handleFileSelect} style="display: none;" />
-      <button class="attach-btn" on:click={() => fileInput.click()} disabled={isUploading}>
+      <button class="btn attach-btn" on:click={() => fileInput.click()} disabled={isUploading}>
         {isUploading ? '업로드 중...' : '파일 첨부'}
       </button>
-      <button class="attach-btn" style="background: #2563eb; color: #fff;" on:click={fetchConvertResults}>리스트 조회</button>
+      <button class="btn list-btn" on:click={fetchConvertResults}>리스트 조회</button>
     </div>
-
-    <!-- 여기엔 벡터디비 리스트 들어갈것 -->
-    <div class="vector-table-mock" style="max-width: 900px; margin: 2.5rem auto 0 auto;">
-      <table style="width: 100%; color: #fff;">
+    <div class="vector-table-mock">
+      <table>
         <thead>
           <tr>
-            <th style="color: #fff;">파일명</th>
-            <th style="color: #fff;">컨버팅 일자</th>
-            <th style="color: #fff;">변환된 파일</th>
-
-            <th style="color: #fff;">재시도 URL</th>
-            <th style="color: #fff;">상태</th>
+            <th>파일명</th>
+            <th>컨버팅 일자</th>
+            <th>변환된 파일</th>
+            <th>재시도 URL</th>
+            <th>상태</th>
           </tr>
         </thead>
         <tbody>
@@ -235,23 +223,15 @@
               <td>{formatDate(item.convertedAt)}</td>
               <td>
                 {#if item.convertedUrl}
-                  <a href={item.convertedUrl} target="_blank" style="color:#00E34F; text-decoration:underline;">PDF파일</a>
+                  <a href={item.convertedUrl} target="_blank" class="converted-link">PDF파일</a>
                 {/if}
               </td>
-
               <td>
                 {#if item.retryUrl && item.status === 'failed'}
-                  <button
-                    style="color:#00E34F; text-decoration:underline; background:none; border:none; cursor:pointer;"
-                    on:click={() => handleRetry(item.retryUrl)}
-                  >
-                    재시도
-                  </button>
+                  <button class="retry-btn" on:click={() => handleRetry(item.retryUrl)}> 재시도 </button>
                 {/if}
               </td>
-              <td style="color: {item.status === 'completed' ? '#00E34F' : '#ff4d4f'}; font-weight: bold;"
-                >{item.status === 'completed' ? '완료' : '실패'}</td
-              >
+              <td class="status-td {item.status}">{item.status === 'completed' ? '완료' : '실패'}</td>
             </tr>
           {/each}
         </tbody>
